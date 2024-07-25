@@ -5,6 +5,9 @@ import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Pencil } from "lucide-react";
+import { cn } from "@/lib/utils";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 import {
   Form,
@@ -13,57 +16,76 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { Course } from "@prisma/client";
+import { Combobox } from "@/components/ui/combobox";
 
-interface TitleFormProps {
-  initialData: {
-    title: string;
-  };
+interface CategoryFormProps {
+  initialData: Course;
   courseId: string;
+  options: { label: string; value: string }[];
 }
 
 const formSchema = z.object({
-  title: z.string().min(1, { message: "Title is required" }),
+  categoryId: z.string().min(1),
 });
-const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
+
+const CategoryForm = ({
+  initialData,
+  courseId,
+  options,
+}: CategoryFormProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: initialData,
+    defaultValues: {
+      categoryId: initialData?.categoryId || "",
+    },
   });
   const { isValid, isSubmitting } = form.formState;
+
   const toggleEdit = () => setIsEditing((prev) => !prev);
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await axios.patch(`/api/courses/${courseId}`, values);
-      toast.success("Title updated successfully");
+      toast.success("Category updated successfully");
       toggleEdit();
       router.refresh();
     } catch (error) {
       toast.error("Something went wrong ");
     }
   };
+  const selectedOption = options.find(
+    (option) => option.value === initialData.categoryId
+  );
 
   return (
     <div className="mt-6 bg-slate-100 rounded-md p-4">
       <div className="flex items-center justify-between font-medium">
-        Course Title
+        Course Category
         <Button onClick={toggleEdit} variant="ghost">
           {isEditing ? (
             <>Cancel</>
           ) : (
             <>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit Title
+              Edit Category
             </>
           )}
         </Button>
       </div>
-      {!isEditing && <p className="text-sm mt-2">{initialData.title}</p>}
+      {!isEditing && (
+        <p
+          className={cn(
+            "text-sm mt-2",
+            !initialData.categoryId && "text-slate-500 italic"
+          )}
+        >
+          {selectedOption?.label || "No Category"}
+        </p>
+      )}
       {isEditing && (
         <Form {...form}>
           <form
@@ -72,15 +94,11 @@ const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
           >
             <FormField
               control={form.control}
-              name="title"
+              name="categoryId"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Input
-                      disabled={isSubmitting}
-                      placeholder="eg. Advance web dev"
-                      {...field}
-                    />
+                    <Combobox options={options} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -98,4 +116,4 @@ const TitleForm = ({ initialData, courseId }: TitleFormProps) => {
   );
 };
 
-export default TitleForm;
+export default CategoryForm;

@@ -40,9 +40,9 @@ export default function CreatePage() {
       const response = await axios.post("/api/courses", values);
       console.log(response);
       router.push(`/teacher/courses/${response.data.id}`);
-      toast.success("Course Created Successfull")
+      toast.success("Course Created Successfull");
     } catch (error) {
-      console.log("client COURSES create ERROR:", error);
+      console.log("client Courses create ERROR:", error);
       toast.error("Something went wrong");
     }
   };
