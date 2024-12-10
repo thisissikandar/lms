@@ -10,7 +10,7 @@ export async function PATCH(
     const { userId } = auth();
     const { courseId } = params;
     const values = await req.json();
-    if (!userId) new NextResponse("Unautherized Request", { status: 401 });
+    if (!userId) return new NextResponse("Unautherized Request", { status: 401 });
     const course = await db.course.update({
       where: {
         id: courseId,

@@ -9,7 +9,9 @@ export async function POST(
   try {
     const { userId } = auth();
     const { url } = await req.json();
-    if (!userId) new NextResponse("Unautherized Request", { status: 401 });
+    if (!userId) {
+      return new NextResponse("Unautherized Request", { status: 401 });
+    }
     const courseOwner = await db.course.findUnique({
       where: {
         id: params.courseId,
@@ -25,7 +27,7 @@ export async function POST(
         courseId: params.courseId,
       },
     });
-    
+
     return NextResponse.json(attachments);
   } catch (error) {
     console.log("ERROR_ID_ATTACHMENT ", error);
