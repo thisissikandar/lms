@@ -4,11 +4,10 @@ import * as z from "zod";
 import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import {  PlusCircle } from "lucide-react";
+import { Loader2, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
-
 
 import {
   Form,
@@ -20,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Chapter, Course } from "@prisma/client";
 import { Input } from "@/components/ui/input";
+import { ChaptersList } from "./chapters-list";
 
 interface ChaptersProps {
   initialData: Course & { chapters: Chapter[] };
@@ -37,11 +37,13 @@ const ChaptersForm = ({ initialData, courseId }: ChaptersProps) => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title:"",
-    }
+      title: "",
+    },
   });
   const { isValid, isSubmitting } = form.formState;
-  const toggleCreating = () =>{ setIsCreating((prev) => !prev);}
+  const toggleCreating = () => {
+    setIsCreating((prev) => !prev);
+  };
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       await axios.post(`/api/courses/${courseId}/chapters`, values);
@@ -52,9 +54,35 @@ const ChaptersForm = ({ initialData, courseId }: ChaptersProps) => {
       toast.error("Something went wrong ");
     }
   };
+  const onReorder = async (updatedData: { id: string; position: number }[]) => {
+    try {
+      setIsUpdating(true);
+      await axios.put(`/api/courses/${courseId}/chapters/reorder`, {
+        list: updatedData,
+      });
+      toast.success("Reordered successfully");
+      console.log(updatedData);
+    } catch (error) {
+      toast.error("Something went wrong ");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+  const onEdit = async (id: string) => {
+    try {
+      console.log(id);
+    } catch (error) {
+    } finally {
+    }
+  };
 
   return (
-    <div className="mt-6 bg-slate-100 rounded-md p-4">
+    <div className="mt-6 border bg-slate-100 rounded-md p-4 relative">
+      {isUpdating && (
+        <div className="absolute h-full w-full bg-slate-500/50 top-0 left-0 rounded-md flex items-center justify-center">
+          <Loader2 className="animate-spin h-6 w-6 text-sky-700" />
+        </div>
+      )}
       <div className="flex items-center justify-between font-medium">
         Course Chapters
         <Button onClick={toggleCreating} variant="ghost">
@@ -68,7 +96,7 @@ const ChaptersForm = ({ initialData, courseId }: ChaptersProps) => {
           )}
         </Button>
       </div>
-     
+
       {isCreating && (
         <Form {...form}>
           <form
@@ -83,7 +111,7 @@ const ChaptersForm = ({ initialData, courseId }: ChaptersProps) => {
                   <FormControl>
                     <Input
                       disabled={isSubmitting}
-                      placeholder="eg. 'intoduction to the course'" 
+                      placeholder="eg. 'intoduction to the course'"
                       {...field}
                     />
                   </FormControl>
@@ -91,24 +119,32 @@ const ChaptersForm = ({ initialData, courseId }: ChaptersProps) => {
                 </FormItem>
               )}
             />
-              <Button type="submit" disabled={!isValid || isSubmitting}>
-                Create
-              </Button>
+            <Button type="submit" disabled={!isValid || isSubmitting}>
+              Create
+            </Button>
           </form>
         </Form>
       )}
       {!isCreating && (
-        <div className={cn("text-sm mt-2", !initialData.chapters.length && "text-slate-500 italic")}>
+        <div
+          className={cn(
+            "text-sm mt-2",
+            !initialData.chapters.length && "text-slate-500 italic"
+          )}
+        >
           {!initialData.chapters.length && "No chapters"}
+          <ChaptersList
+            onEdit={onEdit}
+            onReorder={onReorder}
+            items={initialData.chapters || []}
+          />
         </div>
-      )
-      }
+      )}
       {!isCreating && (
         <p className="text-xs text-muted-foreground mt-4">
           Drag and drop to re-order the chapters
         </p>
-      )
-      }
+      )}
     </div>
   );
 };
