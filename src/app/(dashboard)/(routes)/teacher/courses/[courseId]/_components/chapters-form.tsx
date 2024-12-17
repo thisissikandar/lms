@@ -68,12 +68,8 @@ const ChaptersForm = ({ initialData, courseId }: ChaptersProps) => {
       setIsUpdating(false);
     }
   };
-  const onEdit = async (id: string) => {
-    try {
-      console.log(id);
-    } catch (error) {
-    } finally {
-    }
+  const onEdit = (id: string) => {
+    router.push(`/teacher/courses/${courseId}/chapters/${id}`);
   };
 
   return (
