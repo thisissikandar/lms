@@ -48,10 +48,10 @@ model Attachment {
 model Chapter {
   id           String         @id @default(uuid())
   title        String
-  descriptiom  String         @db.Text
-  videoUrl     String         @db.Text
-  position     String
-  isPublic     Boolean        @default(false)
+  descriptiom  String?        @db.Text
+  videoUrl     String?        @db.Text
+  position     Int
+  isPubLished  Boolean        @default(false)
   isFree       Boolean        @default(false)
   muxData      MuxData?
   courseId     String
@@ -82,8 +82,8 @@ model UserProgress {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, chapterId])
   @@index([chapterId])
+  @@unique([userId, chapterId])
 }
 
 model Purchase {
