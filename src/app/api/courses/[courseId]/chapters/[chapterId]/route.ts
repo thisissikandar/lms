@@ -8,7 +8,6 @@ const { video } = new Mux({
   tokenSecret: process.env.MUX_TOKEN_SECRET,
 });
 
-//
 export async function DELETE(
   req: Request,
   { params }: { params: { courseId: string; chapterId: string } }
@@ -46,12 +45,19 @@ export async function DELETE(
       });
 
       if (existingMuxData) {
-        await video.assets.delete(existingMuxData.assetId);
-        await db.muxData.delete({
-          where: {
-            id: existingMuxData.id,
-          },
-        });
+        try {
+          await video.assets.delete(existingMuxData.assetId);
+          await db.muxData.delete({
+            where: {
+              id: existingMuxData.id,
+            },
+          });
+        } catch (error) {
+          console.log(
+            `Failed to delete asset with ID ${existingMuxData.assetId}:`,
+            error
+          );
+        }
       }
     }
     const deletedChapter = await db.chapter.delete({
