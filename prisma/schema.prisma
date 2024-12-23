@@ -5,7 +5,7 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
 }
 
 model Course {
@@ -25,6 +25,7 @@ model Course {
   updatedAt   DateTime     @updatedAt
 
   @@index([categoryId])
+  @@fulltext([title])
 }
 
 model Category {
@@ -68,7 +69,7 @@ model MuxData {
   id         String  @id @default(uuid())
   assetId    String
   playbackId String?
-  chapterId   String  @unique
+  chapterId  String  @unique
   chapter    Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
 }
 
@@ -82,8 +83,8 @@ model UserProgress {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([chapterId])
   @@unique([userId, chapterId])
+  @@index([chapterId])
 }
 
 model Purchase {
